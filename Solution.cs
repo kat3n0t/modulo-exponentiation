@@ -10,7 +10,7 @@ namespace ModuloExponentiation
             double Answer = 0;
             arr = ReturnArrayNumb(arr);
 
-            if (arr[1] < 0) Answer = 0; 
+            if (arr[1] < 0) Answer = 0;
             else Answer = Math.Pow(arr[0], arr[1]) % arr[2];
             Console.WriteLine("Answer: " + Answer);
         }
@@ -26,14 +26,17 @@ namespace ModuloExponentiation
 
                 Array[i] = EnterNumbers(i, NumbStr);
             }
+
             return Array;
         }
+
         static double EnterNumbers(double Numb, string NumbStr)
         {
             Console.Write(NumbStr + ": ");
             Numb = TryEnterNumber(Numb);
             return Numb;
         }
+
         static double TryEnterNumber(double Num)
         {
             try
@@ -45,6 +48,8 @@ namespace ModuloExponentiation
                 Console.Write("Error! Enter the correct value, pls: ");
                 Num = TryEnterNumber(Num);
             }
+
             return Num;
         }
     }
+}
