@@ -6,7 +6,8 @@ internal static class Program
 {
     private const string Error = "Error!";
     private const string DefaultInputError = "Enter the correct value, pls";
-    
+
+    private const char SeparatorChar = '-';
     private const int SeparatorLength = 20;
 
     public static void Main()
@@ -15,7 +16,7 @@ internal static class Program
         var expNumber = EnterNumber("Exponent", number => number >= 0, "Negative exponent is not supported");
         var modNumber = EnterNumber("Modulus", number => number > 0, "Modulus must be greater than 0");
 
-        Console.WriteLine("\n" + new string('-', SeparatorLength) + "\n");
+        Console.WriteLine("\n" + new string(SeparatorChar, SeparatorLength) + "\n");
 
         Console.WriteLine($"{baseNumber}^{expNumber} % {modNumber}:");
         Console.WriteLine($"Old method: {LegacyModPow(baseNumber, expNumber, modNumber)}");
