@@ -1,50 +1,86 @@
-using System;
+using System.Numerics;
 
-namespace ModuloExponentiation
+namespace ModuloExponentiation;
+
+internal static class Program
 {
-    class Program
+    private const string Error = "Error!";
+    private const string DefaultInputError = "Enter the correct value, pls";
+
+    private const char SeparatorChar = '-';
+    private const int SeparatorLength = 20;
+
+    public static void Main()
     {
-        static void Main(string[] args)
-        {
-            double[] arr = new double[3]; // a, b, c
-            double Answer = 0;
-            arr = ReturnArrayNumb(arr);
+        var baseNumber = EnterNumber("Base");
+        var expNumber = EnterNumber("Exponent", number => number >= 0, "Negative exponent is not supported");
+        var modNumber = EnterNumber("Modulus", number => number > 0, "Modulus must be greater than 0");
 
-            if (arr[1] < 0) Answer = 0; 
-            else Answer = Math.Pow(arr[0], arr[1]) % arr[2];
-            Console.WriteLine("Answer: " + Answer);
-        }
+        Console.WriteLine("\n" + new string(SeparatorChar, SeparatorLength) + "\n");
 
-        static double[] ReturnArrayNumb(double[] Array)
-        {
-            for (int i = 0; i < Array.Length; i++)
-            {
-                string NumbStr = "";
-                if (i == 0) NumbStr = "A";
-                else if (i == 1) NumbStr = "B";
-                else NumbStr = "C";
+        Console.WriteLine($"{baseNumber}^{expNumber} % {modNumber}:");
+        Console.WriteLine($"Old method: {LegacyModPow(baseNumber, expNumber, modNumber)}");
+        Console.WriteLine($"Custom method: {CustomModPow(baseNumber, expNumber, modNumber)}");
+        Console.WriteLine($"System method: {SystemModPow(baseNumber, expNumber, modNumber)}");
+    }
 
-                Array[i] = EnterNumbers(i, NumbStr);
-            }
-            return Array;
-        }
-        static double EnterNumbers(double Numb, string NumbStr)
+    private static long EnterNumber(
+        string numbStr,
+        Func<long, bool>? isValid = null,
+        string errorMessage = DefaultInputError)
+    {
+        while (true)
         {
-            Console.Write(NumbStr + ": ");
-            Numb = TryEnterNumber(Numb);
-            return Numb;
-        }
-        static double TryEnterNumber(double Num)
-        {
-            try
+            Console.Write($"{numbStr}: ");
+
+            var input = Console.ReadLine();
+            if (input == null)
+                throw new EndOfStreamException();
+
+            if (long.TryParse(input, out var result))
             {
-                Num = double.Parse(Console.ReadLine());
+                if (isValid == null || isValid(result))
+                    return result;
+
+                Console.WriteLine($"{Error} {errorMessage}");
             }
-            catch (Exception)
-            {
-                Console.Write("Error! Enter the correct value, pls: ");
-                Num = TryEnterNumber(Num);
-            }
-            return Num;
+            else
+                Console.WriteLine($"{Error} {DefaultInputError}");
         }
     }
+
+    [Obsolete("Uses double-based calculation, works slow and incorrect. Use BigInteger.MathPow instead", false)]
+    private static double LegacyModPow(long baseNumber, long expNumber, long modNumber) =>
+        Math.Pow(baseNumber, expNumber) % modNumber;
+
+    private static long CustomModPow(long baseNumber, long expNumber, long modNumber)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegative(expNumber);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(modNumber, 0);
+
+        if (modNumber == 1)
+            return 0;
+
+        long result = 1;
+        var tempBaseNumber = baseNumber % modNumber; // reduce base to prevent overflow in the operations loop
+        var tempExpNumber = expNumber;
+        while (tempExpNumber > 0) // fast exponential loop - O(log N)
+        {
+            // If exponent is odd, accumulate the current base into the result.
+            // Cast to Int128 prevents overflow during intermediate multiplication.
+            // C# automatically promotes numbers to Int128 for this calculation.
+            if (tempExpNumber % 2 != 0)
+                result = (long)((Int128)result * tempBaseNumber % modNumber);
+
+            // Square the base to halve the required loop iterations.
+            tempBaseNumber = (long)((Int128)tempBaseNumber * tempBaseNumber % modNumber);
+
+            tempExpNumber /= 2;
+        }
+
+        return result;
+    }
+
+    private static BigInteger SystemModPow(long baseNumber, long expNumber, long modNumber) =>
+        BigInteger.ModPow(baseNumber, expNumber, modNumber);
+}
